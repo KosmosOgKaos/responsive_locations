@@ -1,0 +1,13 @@
+; $Id$
+name = Responsive Locations
+description = Calculates absolute positions of GPS coordinates relative to GPS boundaries
+package = Kosmos&Kaos
+core = 7.x
+files[] = responsive_locations.module
+
+; Information added by drupal.org packaging script on 2011-08-17
+version = "7.x-0.1"
+core = "7.x"
+project = "Responsive Locations"
+datestamp = ""
+

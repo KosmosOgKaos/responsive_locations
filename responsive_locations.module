@@ -1,0 +1,56 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: hilmar
+ * Date: 10/09/14
+ * Time: 14:09
+ */
+
+function responsive_locations_calculate( stdClass $boundaryObject, array $coordinates )
+{
+	//Sanitation
+	$boundaryObject->latNorth = ($boundaryObject->latNorth >= 0 ) ? $boundaryObject->latNorth : (double)$boundaryObject->latNorth * -1;
+	$boundaryObject->latSouth = ($boundaryObject->latSouth >= 0 ) ? $boundaryObject->latSouth : (double)$boundaryObject->latSouth * -1;
+	$boundaryObject->longWest = ($boundaryObject->longWest >= 0 ) ? $boundaryObject->longWest : (double)$boundaryObject->longWest * -1;
+	$boundaryObject->longEast = ($boundaryObject->longEast >= 0 ) ? $boundaryObject->longEast : (double)$boundaryObject->longEast * -1;
+
+	$distanceBetweenNorthAndSouth = $boundaryObject->latNorth - $boundaryObject->latSouth;
+	$distanceBetweenWestAndEast = $boundaryObject->longWest - $boundaryObject->longEast;
+
+	$returnArr = array();
+
+	foreach( $coordinates as $coord ){
+		//Sanitation
+		$coord->lat = ($coord->lat >= 0 ) ? $coord->lat : (double)$coord->lat * -1;
+		$coord->long = ($coord->long >= 0 ) ? $coord->long : (double)$coord->long * -1;
+
+		$obj = new stdClass();
+		$obj->nid = $coord->nid;
+		$tmp = (double)$boundaryObject->latNorth - (double)$coord->lat;
+		$obj->distanceFromNorth = $tmp / $distanceBetweenNorthAndSouth;
+		$tmp = $coord->lat - $boundaryObject->latSouth;
+		$obj->distanceFromSouth = $tmp / $distanceBetweenNorthAndSouth;
+		$tmp = $boundaryObject->longWest - $coord->long;
+		$obj->distanceFromWest	= $tmp / $distanceBetweenWestAndEast;
+		$tmp = $coord->long - $boundaryObject->longEast;
+		$obj->distanceFromEast	= $tmp / $distanceBetweenWestAndEast;
+
+		$returnArr[] = $obj;
+	}
+
+	return $returnArr;
+}
+
+function responsive_locations_convert_degrees_to_decimal( $string )
+{
+	$degreeLocation = strpos( $string, '°' );
+	$degrees = substr( $string, 0, $degreeLocation);
+	$minuteLocation = strpos( $string, "'" );
+	$minutes = substr( $string, (int)$degreeLocation + 2, ( (int)$minuteLocation - (int)$degreeLocation ) - 2 );
+	$secondLocation = strpos( $string, "''" );
+	$seconds = substr( $string, (int)$minuteLocation + 2, ( (int)$secondLocation - (int)$minuteLocation) - 2 );
+
+	$return =  (int)$degrees + ( ((int)$minutes/60) + ((double)$seconds/3600) );
+
+	return $return;
+}
