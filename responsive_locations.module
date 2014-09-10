@@ -6,24 +6,41 @@
  * Time: 14:09
  */
 
+/**
+ * Calculate distances (in percentages) from boundary locations
+ *
+ * @param stdClass $boundaryObject which consists of locations of the most 
+ * 			northen/southern/eastern/western point of the map being used.  The
+ *			locations are actual GPS coordinates.
+ * @param array $coordinates An array of stdClasses that each consists of longitude & 
+ *			latitude values and the nid of the node being processed.
+ */
 function responsive_locations_calculate( stdClass $boundaryObject, array $coordinates )
 {
-	//Sanitation
+	//Sanitation.  If any values are negative, they are turned to a positive number
+	//TODO: Needs sanity check when coordinates cross the equator/Greenwich.
 	$boundaryObject->latNorth = ($boundaryObject->latNorth >= 0 ) ? $boundaryObject->latNorth : (double)$boundaryObject->latNorth * -1;
 	$boundaryObject->latSouth = ($boundaryObject->latSouth >= 0 ) ? $boundaryObject->latSouth : (double)$boundaryObject->latSouth * -1;
 	$boundaryObject->longWest = ($boundaryObject->longWest >= 0 ) ? $boundaryObject->longWest : (double)$boundaryObject->longWest * -1;
 	$boundaryObject->longEast = ($boundaryObject->longEast >= 0 ) ? $boundaryObject->longEast : (double)$boundaryObject->longEast * -1;
 
+	//First we need to figure out how long is between the northen and the southern point.  The
+	//distance is an arbitrary number.
+	//TODO: Sanitation check, to see if North > South and West > East
 	$distanceBetweenNorthAndSouth = $boundaryObject->latNorth - $boundaryObject->latSouth;
 	$distanceBetweenWestAndEast = $boundaryObject->longWest - $boundaryObject->longEast;
 
 	$returnArr = array();
 
 	foreach( $coordinates as $coord ){
-		//Sanitation
+		//Sanitation.  If any values are negative, they are turned to a positive number
+		//TODO: Needs sanity check when coordinates cross the equator/Greenwich.
 		$coord->lat = ($coord->lat >= 0 ) ? $coord->lat : (double)$coord->lat * -1;
 		$coord->long = ($coord->long >= 0 ) ? $coord->long : (double)$coord->long * -1;
 
+		//Create a standard class that consists of five elements,
+		//Distance from each of the four main directions, and the nid of the node being
+		//processed, if it exists.
 		$obj = new stdClass();
 		$obj->nid = $coord->nid;
 		$tmp = (double)$boundaryObject->latNorth - (double)$coord->lat;
@@ -41,6 +58,13 @@ function responsive_locations_calculate( stdClass $boundaryObject, array $coordi
 	return $returnArr;
 }
 
+/**
+ * Helper function.  Takes a string in the format of 64° 15' 37.598'' N and converts it into
+ * a decimal value.
+ *
+ * @param string Coordination string (in the format of 64° 15' 37.598'' N)
+ * @return double The coordination in decimal value.
+ */
 function responsive_locations_convert_degrees_to_decimal( $string )
 {
 	$degreeLocation = strpos( $string, '°' );
